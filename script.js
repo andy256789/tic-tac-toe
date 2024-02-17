@@ -17,17 +17,8 @@ function Gameboard() {
         boardWithCellValues.forEach((value, index) => console.log(`${index + 1}.\t${value}`));
     };
 
-    function placeMarker(player) {
-        let placedRow;
-        let placedCol;
-        do {
-            placedRow = prompt("Enter the row:");
-        } while (placedRow < 1 || placedRow > 3);
-        do {
-            placedCol = prompt("Enter the column:");
-        } while (placedCol < 1 || placedCol > 3);
-
-        board[placedRow - 1][placedCol - 1].setValue(player);
+    function placeMarker(row, col, marker) {
+        board[row][col].setValue(marker);
     }
 
     return { getBoard, printBoard, placeMarker }
@@ -44,7 +35,8 @@ function Cell() {
 }
 
 function GameController() {
-    const board = Gameboard();
+    const gameboard = Gameboard();
+    const board = gameboard.getBoard();
 
     let playerOneName = "Player One";
     let playerTwoName = "Player Two";
@@ -56,19 +48,49 @@ function GameController() {
         },
         playerTwo: {
             name: playerTwoName,
-            marker: 2
+            marker: -1
         }
     }
 
     let activePlayer = players.playerOne;
 
-    const changeActivePlayer = () => {
+    const switchActivePlayer = () => {
         activePlayer = activePlayer === players.playerOne ? players.playerTwo : players.playerOne;
     };
 
+    const printNewRound = () => {
+        gameboard.printBoard();
+        console.log(`${activePlayer.name}'s turn`);
+    }
 
+    const playRound = (row, col) => {
+        console.log(`Placing ${activePlayer.name}'s marker at row: ${row + 1} column: ${col + 1}`);
+        gameboard.placeMarker(row, col, activePlayer.marker);
 
-    return {};
+        const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
+
+        let rowSum = 0;
+        let colSum = 0;
+
+        boardWithCellValues[row].forEach(((col) => rowSum += col));
+        boardWithCellValues.forEach((row) => colSum += row[col]);
+
+        if (rowSum === 3 || rowSum === -3 || colSum === 3 || colSum === -3) {
+            console.log(`${activePlayer.name} has won the game!`);
+        }
+
+        switchActivePlayer();
+        printNewRound();
+    };
+
+    printNewRound();
+
+    return { playRound };
 }
 
 const game = GameController();
+while (true) {
+    let row = prompt("Enter the row: ");
+    let col = prompt("Enter the column: ");
+    game.playRound(row - 1, col - 1);
+}
