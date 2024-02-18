@@ -41,7 +41,6 @@ function Cell() {
 
 function GameController() {
     const gameboard = Gameboard();
-    const board = gameboard.getBoard();
 
     let playerOneName = "Player One";
     let playerTwoName = "Player Two";
@@ -57,85 +56,131 @@ function GameController() {
         }
     }
 
+    let status;
+
     let activePlayer = players.playerOne;
 
     const switchActivePlayer = () => {
         activePlayer = activePlayer === players.playerOne ? players.playerTwo : players.playerOne;
     };
 
+    //remove later
     const printNewRound = () => {
         gameboard.printBoard();
         console.log(`${activePlayer.name}'s turn`);
     }
 
-    const playRound = (row, col) => {
+    const getBoard = () => gameboard.getBoard();
 
-        console.log(`Placing ${activePlayer.name}'s marker at row: ${row + 1} column: ${col + 1}`);
+    const getActivePlayer = () => activePlayer;
+
+    const getStatus = () => status;
+
+    const playRound = (row, col) => {
+        if (gameboard.getBoard()[row][col].getValue() != 0) return
+
         gameboard.placeMarker(row, col, activePlayer.marker);
 
-        const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()));
+        if (checkTie()) {
+            status = "Tie";
+            gameboard.resetBoard();
+            return
+        }
+
+        if (checkWinner(row, col)) {
+
+            status = `${activePlayer.name} won`;
+            gameboard.resetBoard();
+            return
+        }
+        status = "";
+
+        switchActivePlayer();
+        printNewRound();
+    };
+
+    const checkWinner = (row, col) => {
+        const board = gameboard.getBoard();
+        const size = board.length;
+        const target = board[row][col].getValue() * 3;
 
         let rowSum = 0;
         let colSum = 0;
         let diagSum = 0;
         let antiDiagSum = 0;
 
-        boardWithCellValues[row].forEach(((col) => rowSum += col));
-        boardWithCellValues.forEach((row) => colSum += row[col]);
+        for (let i = 0; i < size; i++) {
+            rowSum += board[row][i].getValue();
+            colSum += board[i][col].getValue();
+            diagSum += board[i][i].getValue();
+            antiDiagSum += board[i][size - i - 1].getValue();
+        }
 
-        boardWithCellValues.forEach((row, Yindex) => {
-            row.forEach((cell, Xindex) => {
-                if (Yindex === Xindex) {
-                    diagSum += cell;
+        return (rowSum === target || colSum === target || diagSum === target || antiDiagSum === target);
+    };
+
+    const checkTie = () => {
+        let tie = true;
+        gameboard.getBoard().forEach((row) => {
+            row.forEach((cell) => {
+                if (cell.getValue() === 0) {
+                    console.log(cell.getValue());
+                    tie = false;
                 }
             });
         });
-
-        boardWithCellValues.forEach((row, Yindex) => {
-            row.forEach((cell, Xindex) => {
-                if ((Yindex + Xindex) === (row.length - 1)) {
-                    antiDiagSum += cell;
-                }
-            });
-        });
-
-        if (rowSum === 3 || rowSum === -3 || colSum === 3 || colSum === -3 || diagSum === 3 || diagSum === -3 || antiDiagSum === 3 || antiDiagSum === -3) {
-            gameboard.printBoard();
-            console.log(`${activePlayer.name} has won the game!`);
-            gameboard.resetBoard();
-            return
-        }
-
-        switchActivePlayer();
-        printNewRound();
-    };
-
-    const promptUser = () => {
-        let row;
-        let col;
-
-        row = parseInt(prompt("Enter the row: "));
-        col = parseInt(prompt("Enter the column: "));
-
-        if (row > 3 || row < 1 || col > 3 || col < 1) {
-            console.log("Input must be either 1, 2 or 3");
-            return
-        }
-
-        if (board[row - 1][col - 1].getValue() !== 0) {
-            console.log("Invalid input");
-            return
-        }
-
-        playRound(row - 1, col - 1);
-    };
+        return tie;
+    }
 
     printNewRound();
 
-    return { playRound, promptUser };
+    return { playRound, getBoard, getActivePlayer, getStatus };
 }
 
-const game = GameController();
-while (true) {
-    game.promptUser();
+function ScreenController() {
+    const game = GameController();
+    const boardDiv = document.querySelector(".board");
+    const turnDiv = document.querySelector(".turn");
+    const statusDiv = document.querySelector(".status");
+
+    const updateScreen = () => {
+        const board = game.getBoard();
+        const activePlayer = game.getActivePlayer();
+
+        boardDiv.replaceChildren();
+
+        turnDiv.textContent = `${activePlayer.name}'s turn`;
+        statusDiv.textContent = game.getStatus();
+
+        board.forEach((rows, rowIndex) => {
+            rows.forEach((cell, colIndex) => {
+                const button = document.createElement("button");
+                button.classList.add("cell");
+
+                button.dataset.row = rowIndex;
+                button.dataset.col = colIndex;
+
+                button.textContent = cell.getValue() === 1 ? "X"
+                    : cell.getValue() === -1 ? "O"
+                        : "";
+                boardDiv.appendChild(button);
+            });
+        });
+    };
+
+    const clickHandler = (e) => {
+        const clickedRow = e.target.dataset.row;
+        const clickedCol = e.target.dataset.col;
+
+        if (!clickedCol || !clickedRow) return
+
+        game.playRound(clickedRow, clickedCol);
+        updateScreen();
+    };
+
+    boardDiv.addEventListener("click", clickHandler);
+
+    updateScreen();
 }
+
+ScreenController();

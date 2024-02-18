@@ -1,0 +1,50 @@
+:root {
+    --background-color: #252222;
+    --text-color: #fff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    height: 100vh;
+    background-color: var(--background-color);
+    display: grid;
+    grid-template-rows: 1fr 60vh 1fr;
+    grid-template-columns: 1fr 60vh 1fr;
+}
+
+.board {
+    display: grid;
+    grid-area: 2/2;
+    background-color: aliceblue;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 20px;
+}
+
+.turn {
+    grid-area: 1/2;
+    align-self: center;
+    justify-self: center;
+    font-size: 5rem;
+    color: var(--text-color);
+}
+
+.status {
+    grid-area: 3/2;
+    align-self: center;
+    justify-self: center;
+    font-size: 5rem;
+    color: var(--text-color);
+}
+
+.cell {
+    outline: none;
+    border: none;
+    background-color: rebeccapurple;
+    font-size: 5rem;
+}
