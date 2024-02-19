@@ -20,7 +20,6 @@ body {
 .board {
     display: grid;
     grid-area: 2/2;
-    background-color: aliceblue;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr;
     gap: 20px;
@@ -42,9 +41,26 @@ body {
     color: var(--text-color);
 }
 
+.restart {
+    grid-area: 2/1;
+    align-self: center;
+    justify-self: end;
+}
+
 .cell {
+    font-family: monospace;
     outline: none;
     border: none;
-    background-color: rebeccapurple;
-    font-size: 5rem;
+    color: var(--text-color);
+    font-size: 10rem;
+}
+
+.xInside {
+    background-color: red;
+    background-size: 100%;
+}
+
+.oInside {
+    background-color: blue;
+    background-size: 100%;
 }

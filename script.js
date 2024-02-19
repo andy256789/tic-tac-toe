@@ -56,7 +56,7 @@ function GameController() {
         }
     }
 
-    let status;
+    let status = null;
 
     let activePlayer = players.playerOne;
 
@@ -64,39 +64,34 @@ function GameController() {
         activePlayer = activePlayer === players.playerOne ? players.playerTwo : players.playerOne;
     };
 
-    //remove later
-    const printNewRound = () => {
-        gameboard.printBoard();
-        console.log(`${activePlayer.name}'s turn`);
-    }
-
     const getBoard = () => gameboard.getBoard();
 
     const getActivePlayer = () => activePlayer;
 
     const getStatus = () => status;
 
+    const resetBoard = () => {
+        gameboard.resetBoard()
+        activePlayer = players.playerOne;
+        status = null;
+    };
+
     const playRound = (row, col) => {
         if (gameboard.getBoard()[row][col].getValue() != 0) return
 
         gameboard.placeMarker(row, col, activePlayer.marker);
 
-        if (checkTie()) {
-            status = "Tie";
-            gameboard.resetBoard();
-            return
-        }
-
         if (checkWinner(row, col)) {
-
-            status = `${activePlayer.name} won`;
-            gameboard.resetBoard();
+            status = "win";
             return
         }
-        status = "";
+
+        if (checkTie()) {
+            status = "tie";
+            return
+        }
 
         switchActivePlayer();
-        printNewRound();
     };
 
     const checkWinner = (row, col) => {
@@ -124,7 +119,6 @@ function GameController() {
         gameboard.getBoard().forEach((row) => {
             row.forEach((cell) => {
                 if (cell.getValue() === 0) {
-                    console.log(cell.getValue());
                     tie = false;
                 }
             });
@@ -132,16 +126,16 @@ function GameController() {
         return tie;
     }
 
-    printNewRound();
-
-    return { playRound, getBoard, getActivePlayer, getStatus };
+    return { playRound, getBoard, getActivePlayer, getStatus, resetBoard };
 }
 
 function ScreenController() {
     const game = GameController();
+
     const boardDiv = document.querySelector(".board");
     const turnDiv = document.querySelector(".turn");
     const statusDiv = document.querySelector(".status");
+    const restartDiv = document.querySelector(".restart");
 
     const updateScreen = () => {
         const board = game.getBoard();
@@ -150,7 +144,10 @@ function ScreenController() {
         boardDiv.replaceChildren();
 
         turnDiv.textContent = `${activePlayer.name}'s turn`;
-        statusDiv.textContent = game.getStatus();
+
+        statusDiv.textContent = game.getStatus() === "win" ? `${activePlayer.name} won`
+            : game.getStatus() === "tie" ? "Tie" : "";
+
 
         board.forEach((rows, rowIndex) => {
             rows.forEach((cell, colIndex) => {
@@ -160,9 +157,13 @@ function ScreenController() {
                 button.dataset.row = rowIndex;
                 button.dataset.col = colIndex;
 
-                button.textContent = cell.getValue() === 1 ? "X"
-                    : cell.getValue() === -1 ? "O"
-                        : "";
+                if (cell.getValue() === 1)
+                    button.classList.add("xInside");
+
+                if (cell.getValue() === -1)
+                    button.classList.add("oInside");
+
+
                 boardDiv.appendChild(button);
             });
         });
@@ -174,12 +175,19 @@ function ScreenController() {
 
         if (!clickedCol || !clickedRow) return
 
+        if (game.getStatus()) return
+
         game.playRound(clickedRow, clickedCol);
         updateScreen();
     };
 
-    boardDiv.addEventListener("click", clickHandler);
+    const resetHandler = () => {
+        game.resetBoard();
+        updateScreen()
+    }
 
+    boardDiv.addEventListener("click", clickHandler);
+    restartDiv.addEventListener("click", resetHandler);
     updateScreen();
 }
 
