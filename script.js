@@ -63,6 +63,9 @@ function GameController() {
     const switchActivePlayer = () => {
         activePlayer = activePlayer === players.playerOne ? players.playerTwo : players.playerOne;
     };
+    const changePlayerOneName = (name) => players.playerOne.name = name;
+
+    const changePlayerTwoName = (name) => players.playerTwo.name = name;
 
     const getBoard = () => gameboard.getBoard();
 
@@ -126,7 +129,7 @@ function GameController() {
         return tie;
     }
 
-    return { playRound, getBoard, getActivePlayer, getStatus, resetBoard };
+    return { playRound, getBoard, getActivePlayer, getStatus, resetBoard, changePlayerOneName, changePlayerTwoName };
 }
 
 function ScreenController() {
@@ -134,19 +137,25 @@ function ScreenController() {
 
     const boardDiv = document.querySelector(".board");
     const turnDiv = document.querySelector(".turn");
-    const statusDiv = document.querySelector(".status");
+    const statusDiv = document.querySelector("#stats");
     const restartDiv = document.querySelector(".restart");
+
+    const playerOneInput = document.querySelector("#p1");
+    const playerTwoInput = document.querySelector("#p2");
+
 
     const updateScreen = () => {
         const board = game.getBoard();
         const activePlayer = game.getActivePlayer();
 
         boardDiv.replaceChildren();
-
-        turnDiv.textContent = `${activePlayer.name}'s turn`;
-
+        turnDiv.textContent = "TURN: " + activePlayer.name.toUpperCase();
+        statusDiv.classList.remove("status");
+        if (game.getStatus() !== null) {
+            statusDiv.classList.add("status");
+        }
         statusDiv.textContent = game.getStatus() === "win" ? `${activePlayer.name} won`
-            : game.getStatus() === "tie" ? "Tie" : "";
+            : game.getStatus() === "tie" ? "Game is a Tie" : "";
 
 
         board.forEach((rows, rowIndex) => {
@@ -185,6 +194,17 @@ function ScreenController() {
         game.resetBoard();
         updateScreen()
     }
+
+
+    playerOneInput.addEventListener("input", () => {
+        let input = playerOneInput.value ? playerOneInput.value : "Player One";
+        game.changePlayerOneName(input);
+    });
+
+    playerTwoInput.addEventListener("input", () => {
+        let input = playerTwoInput.value ? playerTwoInput.value : "Player One";
+        game.changePlayerTwoName(input);
+    });
 
     boardDiv.addEventListener("click", clickHandler);
     restartDiv.addEventListener("click", resetHandler);
