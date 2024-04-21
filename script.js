@@ -172,7 +172,6 @@ function ScreenController() {
                 if (cell.getValue() === -1)
                     button.classList.add("oInside");
 
-
                 boardDiv.appendChild(button);
             });
         });
@@ -202,7 +201,7 @@ function ScreenController() {
     });
 
     playerTwoInput.addEventListener("input", () => {
-        let input = playerTwoInput.value ? playerTwoInput.value : "Player One";
+        let input = playerTwoInput.value ? playerTwoInput.value : "Player Two";
         game.changePlayerTwoName(input);
     });
 
